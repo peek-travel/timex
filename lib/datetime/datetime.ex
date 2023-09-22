@@ -463,6 +463,18 @@ defimpl Timex.Protocol, for: DateTime do
       {ty, a, b} when ty in [:gap, :ambiguous] ->
         %AmbiguousDateTime{before: a, after: b, type: ty}
 
+      %DateTime{} = shifted_datetime ->
+        {_microseconds, orig_precision} = datetime.microsecond
+        {microseconds, _precision} = shifted_datetime.microsecond
+
+        shifted_precision =
+          microseconds
+          |> Integer.digits()
+          |> Enum.take_while(&(&1 != 0))
+          |> length()
+
+        %{shifted_datetime | microsecond: {microseconds, max(orig_precision, shifted_precision)}}
+
       result ->
         result
     end
